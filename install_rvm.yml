@@ -1,13 +1,44 @@
 ---
-rvm1_rubies:
-  - 'ruby-2.3.1'
-rvm1_bundler_install: True
-rvm1_delete_ruby:
-rvm1_install_path: '~/.rvm'
-rvm1_install_flags: '--auto-dotfiles  --user-install'
-rvm1_ruby_install_flags:
-rvm1_user: 'deploy'
-rvm1_rvm_latest_installer: 'https://raw.githubusercontent.com/rvm/rvm/master/binscripts/rvm-installer'
-rvm1_rvm_version: 'stable'
-rvm1_rvm_check_for_updates: True
-rvm1_autolib_mode: 3
+- hosts: BEEZWAX
+  sudo: yes
+  vars:
+    ruby_version: "2.1.3"
+    rvm_path: "/usr/local/rvm/gems/ruby-{{ ruby_version }}/bin:/usr/local/rvm/gems/ruby-{{ ruby_version }}@global/bin:/usr/local/rvm/rubies/ruby-{{ ruby_version }}/bin:/usr/local/rvm/bin"
+
+  tasks:
+
+  - name: append rvm path to environment
+    lineinfile: dest=/etc/environment state=present backrefs=yes regexp='PATH=(["]*)((?!.*?{{rvm_path}}).*?)(["]*)$' line="PATH=\1\2:{{rvm_path}}\3"
+
+
+  - name: ensure necessary packages are installed
+    yum:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - curl
+      - gnupg2
+
+  - name: ensure that GPG key for RVM is installed
+    command: gpg2 --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3
+    args:
+      creates: /root/.gnupg/secring.gpg
+
+  - name: ensure that RVM is installed
+    shell: curl -L get.rvm.io | bash -s stable
+    args:
+      creates: /usr/local/rvm
+
+  - name: ensure that ruby is installed
+    command: "rvm install {{ ruby_version }}"
+    args:
+      creates: "/usr/local/rvm/gems/ruby-{{ ruby_version }}"
+    environment:
+      PATH: "{{ rvm_path }}:{{ ansible_env.PATH }}"
+
+  - name: set default version of ruby with rvm
+    command: "rvm alias create default ruby-{{ ruby_version }}"
+    args:
+      creates: /usr/local/rvm/config/alias
+    environment:
+      PATH: "{{ rvm_path }}:{{ ansible_env.PATH }}"
