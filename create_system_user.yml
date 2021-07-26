@@ -1,0 +1,14 @@
+---
+- name: "Create user"
+  hosts: beezwax
+ gather_Facts: true
+ 
+ tasks:
+  - name: "Create system user deploy"
+  user:
+    name: deploy
+    uid: 10000
+    gdi: 10000
+    shell: /bin/bash
+    groups: admins
+    append: yes
