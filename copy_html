@@ -1,0 +1,12 @@
+---
+- name: Copy HTML file
+  hosts: ubuntu
+  become: true
+  become_user: root
+  gather_facts: true
+  
+  tasks:
+    - name: "Clone GIT file"
+        git:
+          repo: https://github.com/rodlbor/index.html
+          dest: /var/www/html/
