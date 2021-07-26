@@ -1,0 +1,16 @@
+---
+- hosts: ubuntu
+  remote_user: root
+  
+  tasks:
+    - name: "Install pip"
+      apt: name=python-pip state=present
+      
+    - name: "Intall libmysqlclient-dev"
+      apt: name=libmysqlclient-dev state=present
+      
+    - name: "Install Python MySQL module"
+      pip: name=MySQL-python
+      
+    - name: "Create DB user deploy"
+      mysql_user: user=deploy password=deploy priv=*.*:ALL state=present
